@@ -14,38 +14,23 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          java-version: 21
+          distribution: temurin
 
       - name: Build with Maven
-        run: mvn package -DskipTests
+        run: mvn -B package -DskipTests
 
-      - name: Copy dependencies
+      - name: Prepare dist
         run: |
-          mvn dependency:copy-dependencies -DincludeScope=runtime -DoutputDirectory=dist/classpath
-          cp target/*.jar dist/classpath/java-language-server.jar
-
-      - name: Create launcher script
-        run: |
-          cat > dist/lang_server_linux.sh << 'SCRIPT'
-#!/bin/sh
-DIR=$(dirname $0)
-JAVA_OPTS="\
---add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
---add-exports jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED \
---add-exports jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED \
---add-exports jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED \
---add-exports jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
---add-exports jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED \
---add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
---add-opens jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"
-CLASSPATH="$DIR/classpath/gson-2.8.9.jar:$DIR/classpath/protobuf-java-3.25.5.jar:$DIR/classpath/java-language-server.jar"
-exec java $JAVA_OPTS -cp "$CLASSPATH" org.javacs.Main "$@"
-SCRIPT
-          chmod +x dist/lang_server_linux.sh
+          mkdir -p artifact/classpath
+          cp -r dist/lang_server_linux.sh artifact/
+          cp -r dist/launch_linux.sh artifact/
+          find target -name "*.jar" ! -name "*test*" -exec cp {} artifact/classpath/ \;
+          mvn -B dependency:copy-dependencies -DincludeScope=runtime -DoutputDirectory=artifact/classpath 2>/dev/null || true
+          ls -la artifact/classpath/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: java-language-server-dist
-          path: dist/
+          path: artifact/
