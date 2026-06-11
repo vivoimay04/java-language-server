@@ -20,13 +20,12 @@ jobs:
       - name: Build with Maven
         run: mvn -B package -DskipTests
 
-      - name: Prepare dist
+      - name: Prepare artifact
         run: |
           mkdir -p artifact/classpath
-          cp -r dist/lang_server_linux.sh artifact/
-          cp -r dist/launch_linux.sh artifact/
-          find target -name "*.jar" ! -name "*test*" -exec cp {} artifact/classpath/ \;
-          mvn -B dependency:copy-dependencies -DincludeScope=runtime -DoutputDirectory=artifact/classpath 2>/dev/null || true
+          cp dist/lang_server_linux.sh artifact/
+          cp dist/launch_linux.sh artifact/
+          cp dist/classpath/*.jar artifact/classpath/
           ls -la artifact/classpath/
 
       - name: Upload artifact
