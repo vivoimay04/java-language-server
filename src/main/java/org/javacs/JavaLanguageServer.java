@@ -175,7 +175,13 @@ class JavaLanguageServer extends LanguageServer {
             (params.workspaceFolders != null && !params.workspaceFolders.isEmpty() ?
                 params.workspaceFolders.get(0).uri :
                 java.nio.file.Paths.get(".").toAbsolutePath().normalize().toUri());
-        var rootPath = java.nio.file.Paths.get(workspaceUri);
+        java.nio.file.Path rootPath;
+        try {
+            rootPath = java.nio.file.Paths.get(workspaceUri);
+        } catch (Exception e) {
+            rootPath = java.nio.file.Paths.get(workspaceUri.getPath());
+        }
+        this.workspaceRoot = rootPath;
         FileStore.setWorkspaceRoots(java.util.Set.of(rootPath));
         var c = new JsonObject();
         c.addProperty("textDocumentSync", 2); // Incremental
