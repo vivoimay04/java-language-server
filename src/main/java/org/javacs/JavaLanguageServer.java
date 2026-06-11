@@ -171,7 +171,7 @@ class JavaLanguageServer extends LanguageServer {
 
     @Override
     public InitializeResult initialize(InitializeParams params) {
-        String root = params.rootUri != null ? params.rootUri :
+        String root = params.rootUri != null ? params.rootUri.toString() :
             (params.workspaceFolders != null && !params.workspaceFolders.isEmpty() ?
                 params.workspaceFolders.get(0).uri.toString() :
                 java.nio.file.Paths.get(".").toAbsolutePath().normalize().toUri().toString());
